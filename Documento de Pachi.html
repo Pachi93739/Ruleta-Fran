@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Juego Casino Fran</title>
+<style>
+*{box-sizing:border-box}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;padding:20px;background:radial-gradient(circle at top,#283653,#101522 68%);color:#f5f7fb;font-family:system-ui,Segoe UI,sans-serif}
+main{max-width:850px;margin:auto}
+.top{text-align:center;margin-bottom:16px}
+.top h1{margin:0;font-size:30px}
+.muted{color:#aebbd0;font-size:13px}
+.wallet{background:#172235;border:1px solid #3a4a63;border-radius:18px;padding:14px;display:flex;justify-content:space-around;gap:12px;flex-wrap:wrap;margin:16px 0}
+.stat{text-align:center}
+.stat small{display:block;color:#aebbd0;font-size:11px;letter-spacing:1px}
+.stat strong{font-size:23px;color:#ffe082}
+.tabs{display:flex;gap:8px;margin:16px 0}
+.tab{flex:1;padding:13px 4px;border:1px solid #46546c;border-radius:12px;background:#202c40;color:#dce5f3;font-weight:750;cursor:pointer}
+.tab.active{background:#e9bd58;color:#20202a;border-color:#e9bd58}
+.panel{background:#1b2434;border:1px solid #35435a;border-radius:20px;padding:20px;box-shadow:0 12px 35px #0004}
+.panel h2{margin:0 0 5px}
+.panel p{margin:5px 0 14px}
+.page{display:none}
+.page.active{display:block}
+.wheel-wrap{position:relative;width:min(78vw,310px);aspect-ratio:1;margin:14px auto}
+.pointer{position:absolute;z-index:2;top:-7px;left:50%;transform:translateX(-50%);border-left:12px solid transparent;border-right:12px solid transparent;border-top:27px solid #f7d36b}
+canvas.wheel{width:100%;height:100%;border-radius:50%;border:7px solid #e5c36b;box-shadow:0 8px 25px #0008;transition:transform 4s cubic-bezier(.12,.72,.12,1)}
+.center{position:absolute;inset:42%;border-radius:50%;background:#e5c36b;border:5px solid white;pointer-events:none}
+label{display:block;font-weight:650;margin:12px 0 7px}
+input{width:100%;padding:11px;border-radius:10px;border:1px solid #46546c;background:#111a29;color:white;font-size:16px}
+.colors{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.color{border:2px solid transparent;border-radius:11px;padding:11px 4px;color:white;font-weight:700;cursor:pointer;background:#303b50}
+.color.active{border-color:#f7d36b}
+.red{background:#c93642}
+.black{background:#101216}
+.green{background:#16834a}
+.action{width:100%;padding:13px;margin-top:13px;border:0;border-radius:11px;background:linear-gradient(90deg,#e9bd58,#f4d98e);color:#20202a;font-size:16px;font-weight:850;cursor:pointer}
+.secondary{background:#35445d;color:#fff}
+.action:disabled{opacity:.5;cursor:not-allowed}
+.result{margin-top:13px;padding:12px;border-radius:11px;text-align:center;background:#111a29;min-height:48px}
+.good{color:#70e6a0}
+.bad{color:#ff3b3b}
+.upgrade-box{margin-top:15px;background:#172235;border:1px solid #46546c;border-radius:14px;padding:15px;text-align:center}
+.upgrade-box h3{margin:0 0 10px;color:#ffe082}
+.upgrade-info{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.upgrade-info div{background:#111a29;padding:10px;border-radius:10px}
+.upgrade-info small{display:block;color:#9eacc2;font-size:11px}
+.upgrade-info strong{font-size:18px}
+.stage-box{margin-top:17px;padding:15px;background:#172235;border:1px solid #46546c;border-radius:14px}
+.stage-box h3{margin:0 0 8px;color:#ffe082;text-align:center}
+.stage-price{text-align:center;margin:12px 0;font-size:18px;font-weight:800;color:#ffe082}
+.stage-status{text-align:center;background:#111a29;padding:10px;border-radius:10px;margin:10px 0;font-size:13px}
+.stage-buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stage-btn{padding:13px 5px;border:2px solid transparent;border-radius:11px;color:white;font-weight:800;cursor:pointer;font-size:13px}
+.stage-btn:disabled{opacity:.4;cursor:not-allowed}
+.stage-good{background:#176d43;border-color:#269b61}
+.stage-bad{background:#8e2935;border-color:#c93642}
+.stage-neutral{background:#35445d;border-color:#60718c}
+.stage-btn small{display:block;font-size:10px;font-weight:500;margin-top:5px}
+.market{text-align:center}
+.price{font-size:36px;font-weight:850;color:#ffe082;margin:10px 0 0}
+.movement{font-size:15px;font-weight:700;min-height:24px}
+.coin-icon{font-size:42px}
+.market-stats{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:15px 0}
+.market-stats div{background:#111a29;padding:12px;border-radius:10px}
+.market-stats small{display:block;color:#9eacc2;font-size:11px}
+.market-stats strong{font-size:18px}
+.trade-buttons{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.trade-buttons .action{margin-top:0}
+.chartbox{margin-top:18px;background:#111a29;border-radius:14px;padding:12px;text-align:left}
+.chart-head{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px}
+.chart-head strong{font-size:14px}
+.chart-head span{font-size:11px;color:#9eacc2}
+canvas#chart{width:100%;height:220px;display:block}
+.history{margin-top:14px;font-size:13px;color:#c4cede}
+.history-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #35435a}
+.blackjack-table{background:#125638;border:5px solid #b58b46;border-radius:18px;padding:18px;margin-top:15px;text-align:center}
+.cards{display:flex;justify-content:center;flex-wrap:wrap;gap:9px;min-height:90px;margin:12px 0}
+.playing-card{background:#fff;color:#171717;border-radius:9px;width:58px;height:82px;display:flex;align-items:center;justify-content:center;font-size:23px;font-weight:850;box-shadow:0 3px 8px #0005}
+.playing-card.red-card{color:#d52f3d}
+.playing-card.hidden-card{background:#263d68;color:white;border:3px solid white}
+.bj-controls{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.bj-controls .action{margin-top:8px}
+.track{margin:14px 0;background:#3b2a17;border:3px solid #b58b46;border-radius:14px;padding:8px 8px 8px 8px}
+.lane{position:relative;height:44px;margin:5px 0;border-radius:9px;background:linear-gradient(90deg,#2e7d32,#3a9140);overflow:hidden}
+.lane::after{content:"";position:absolute;right:0;top:0;bottom:0;width:6px;background:repeating-linear-gradient(#fff 0 6px,#111 6px 12px)}
+.lane .num{position:absolute;left:6px;top:50%;transform:translateY(-50%);font-size:11px;font-weight:800;background:#0006;border-radius:6px;padding:2px 6px}
+.horse{position:absolute;top:4px;left:0;font-size:30px;line-height:1;display:inline-block;transform:scaleX(-1)}
+.horses{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.horse-pick{border:2px solid transparent;border-radius:11px;padding:9px 2px;background:#303b50;color:#fff;cursor:pointer;font-weight:750;font-size:12px}
+.horse-pick.active{border-color:#f7d36b;background:#4a3d1f}
+.horse-pick small{display:block;font-size:10px;font-weight:500;color:#c4cede;margin-top:3px}
+.horse-pick b{display:block;font-size:16px;color:#ffe082}
+.tabs{flex-wrap:wrap}.tab{flex:1 1 20%}
+.xpbar{height:5px;background:#0006;border-radius:4px;margin-top:4px;overflow:hidden}
+.xpbar i,.bar i{display:block;height:100%;background:#ffe082;width:0}
+.bar{height:10px;background:#111a29;border-radius:6px;overflow:hidden;margin:8px 0}
+.ttl{font-size:12px;color:#ffe082;margin-top:2px}
+.box{background:#111a29;border-radius:12px;padding:12px;margin:10px 0}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #35435a;font-size:14px}
+.mini{padding:8px 11px;border:0;border-radius:9px;background:#e9bd58;color:#20202a;font-weight:800;cursor:pointer}.mini:disabled{opacity:.45;cursor:not-allowed}
+.achs,.sg{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.ach{background:#111a29;border-radius:10px;padding:9px;text-align:center;opacity:.4;font-size:12px}.ach.on{opacity:1;border:1px solid #e9bd58}.ach span{font-size:22px;display:block}
+.sg div{background:#111a29;border-radius:10px;padding:9px;font-size:12px;color:#9eacc2}.sg strong{display:block;font-size:17px;color:#ffe082}
+.dot{display:inline-block;width:16px;height:16px;border-radius:50%;vertical-align:middle;margin-right:4px}
+h3.sec{margin:18px 0 6px;color:#ffe082}
+#plCanvas{width:100%;max-width:360px;display:block;margin:12px auto;border-radius:14px}
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#e9bd58;color:#20202a;padding:10px 16px;border-radius:12px;font-weight:800;font-size:13px;opacity:0;pointer-events:none;transition:opacity .3s;z-index:9;max-width:90vw;text-align:center}#toast.show{opacity:1}
+.foot{text-align:center;color:#8f9db2;font-size:11px;margin:18px 0}
+@media(max-width:400px){
+.stage-buttons{gap:5px}
+.stage-btn{font-size:11px;padding:11px 3px}
+.tabs{gap:4px}
+.tab{font-size:11px;padding:11px 2px}
+.horses{gap:4px}
+}
+</style>
+</head>
+<body>
+<main>
+<header class="top">
+<h1>🍌 Banana Casino</h1>
+<div class="muted">Ruleta, Blackjack, Carreras, Plinko y mercado FranCoin · simulador de puntos</div><div class="ttl" id="titleLine"></div>
+</header>
+
+<section class="wallet">
+<div class="stat"><small>TUS BANANAS</small><strong id="bananas">🍌 100.00</strong></div>
+<div class="stat"><small>FRANCOINS</small><strong id="holdings">🪙 0.000</strong></div>
+<div class="stat"><small>VALOR DE CARTERA</small><strong id="portfolio">🍌 0.00</strong></div>
+<div class="stat"><small>NIVEL</small><strong id="lvl">Nv 1</strong><div class="xpbar"><i id="xpFill"></i></div></div>
+</section>
+
+<nav class="tabs">
+<button class="tab active" id="tabRoulette" onclick="showPage('roulette')">🎡 Ruleta</button>
+<button class="tab" id="tabBlackjack" onclick="showPage('blackjack')">🃏 Blackjack</button>
+<button class="tab" id="tabRace" onclick="showPage('race')">🏇 Carreras</button>
+<button class="tab" id="tabPlinko" onclick="showPage('plinko')">🔵 Plinko</button>
+<button class="tab" id="tabMarket" onclick="showPage('market')">🪙 FranCoin</button>
+<button class="tab" id="tabProfile" onclick="showPage('profile')">🏆 Perfil</button>
+<button class="tab" id="tabShop" onclick="showPage('shop')">🛍️ Tienda</button>
+</nav>
+
+<section class="panel page active" id="roulette">
+<h2>🎡 Ruleta</h2>
+<p class="muted">12 rojas, 12 negras y 1 verde.</p>
+<div class="wheel-wrap">
+<div class="pointer"></div>
+<canvas class="wheel" id="wheel" width="600" height="600"></canvas>
+<div class="center"></div>
+</div>
+<label for="bet">Apuesta en bananas</label>
+<input id="bet" type="number" min="1" step="1" value="10">
+<label>Elegí un color</label>
+<div class="colors">
+<button class="color red active" data-color="Rojo">🔴 Rojo<br><span id="redMultiplier">x2</span></button>
+<button class="color black" data-color="Negro">⚫ Negro<br><span id="blackMultiplier">x2</span></button>
+<button class="color green" data-color="Verde">🟢 Verde<br><span id="greenMultiplier">x30</span></button>
+</div>
+<div class="upgrade-box">
+<h3>⚡ Mejoras de ruleta</h3>
+<div class="upgrade-info">
+<div><small>NIVEL DE MEJORA</small><strong id="upgradeLevel">0</strong></div>
+<div><small>PRÓXIMA MEJORA</small><strong id="upgradeCost">🍌 100.00</strong></div>
+</div>
+<p class="muted">Cada mejora suma una cantidad fija. El aumento crece un 50% cada 10 mejoras.</p>
+<p class="muted" id="nextUpgradeIncrease">Próximo aumento: +0.05</p>
+<button class="action" id="upgradeBtn">⚡ MEJORAR MULTIPLICADOR</button>
+</div>
+<button class="action" id="spin">GIRAR RULETA</button>
+<button class="action secondary" id="autoSpin">▶️ ACTIVAR AUTO SPIN</button>
+<div class="result" id="rouletteResult">Elegí tu color y girá.</div>
+</section>
+
+<section class="panel page" id="blackjack">
+<h2>🃏 Blackjack</h2>
+<p class="muted">Acercate a 21 sin pasarte. El dealer se planta en 17.</p>
+<label for="bjBet">Apuesta en bananas</label>
+<input id="bjBet" type="number" min="1" step="1" value="10">
+<button class="action" id="bjStart">REPARTIR CARTAS</button>
+<div class="blackjack-table">
+<h3>Dealer</h3>
+<div class="cards" id="dealerCards"></div>
+<div id="dealerScore">Puntos: -</div>
+<hr>
+<h3>Vos</h3>
+<div class="cards" id="playerCards"></div>
+<div id="playerScore">Puntos: -</div>
+<div class="result" id="bjResult">Hacé tu apuesta para empezar.</div>
+</div>
+<div id="bjDecision" class="bj-controls" style="display:none">
+<button class="action" id="bjDouble">💰 DUPLICAR APUESTA</button>
+<button class="action secondary" id="bjKeep">SEGUIR CON LA INICIAL</button>
+</div>
+<div id="bjPlay" class="bj-controls" style="display:none">
+<button class="action" id="bjHit">🃏 PEDIR CARTA</button>
+<button class="action secondary" id="bjStand">✋ PLANTARSE</button>
+</div>
+</section>
+
+<section class="panel page" id="race">
+<h2>🏇 Carreras de caballos</h2>
+<p class="muted">Elegí tu caballo, apostá y mirá la carrera. Los favoritos pagan menos; los outsiders pagan más.</p>
+<div class="track" id="track"></div>
+<label>Elegí tu caballo</label>
+<div class="horses" id="horsePicks"></div>
+<label for="raceBet">Apuesta en bananas</label>
+<input id="raceBet" type="number" min="1" step="1" value="10">
+<button class="action" id="raceStart">🏁 ¡LARGAR CARRERA!</button>
+<div class="result" id="raceResult">Elegí un caballo y largá la carrera.</div>
+<div class="history"><strong>Últimos ganadores</strong><div id="raceHistory">Todavía no hubo carreras.</div></div>
+</section>
+
+<section class="panel page market" id="market">
+<h2>🪙 Mercado FranCoin</h2>
+<p class="muted">El precio cambia cada 3 segundos.</p>
+<div class="coin-icon">🪙</div>
+<div class="price" id="price">🍌 10.00</div>
+<div class="movement" id="movement">Esperando primer movimiento…</div>
+<div class="market-stats">
+<div><small>TUS FRANCOINS</small><strong id="coinCount">0.000</strong></div>
+<div><small>VALOR DE TUS MONEDAS</small><strong id="coinValue">🍌 0.00</strong></div>
+<div><small>PRÓXIMO MOVIMIENTO</small><strong id="nextMove">3 s</strong></div>
+<div><small>CAMBIOS REGISTRADOS</small><strong id="moveCount">0</strong></div>
+</div>
+<div class="stage-box">
+<h3>🎛️ Control de etapas FranCoin</h3>
+<p class="muted" style="text-align:center">Las etapas cambian automáticamente. También podés pagar para elegir una.</p>
+<div class="stage-price">💰 Precio del cambio: <span id="stageCost">🍌 1000.00</span></div>
+<div class="stage-status" id="stageStatus">❔ Etapa desconocida</div>
+<div class="stage-buttons">
+<button class="stage-btn stage-good" id="goodStage">📈 BUENA<small>60% subir</small></button>
+<button class="stage-btn stage-bad" id="badStage">📉 MALA<small>60% bajar</small></button>
+<button class="stage-btn stage-neutral" id="neutralStage">⚖️ NEUTRA<small>50% / 50%</small></button>
+</div>
+<p class="muted" style="text-align:center;margin-top:12px">Cada cambio cuesta 100 veces el precio actual de una FranCoin y dura 15 segundos.</p>
+</div>
+<label for="tradeAmount">Cantidad de bananas para comprar</label>
+<input id="tradeAmount" type="number" min="0.01" step="0.01" value="10">
+<div class="trade-buttons">
+<button class="action" id="buy">COMPRAR</button>
+<button class="action secondary" id="sell">VENDER TODO</button>
+</div>
+<div class="result" id="marketResult">Comprá FranCoins usando tus bananas.</div>
+<div class="chartbox">
+<div class="chart-head"><strong>📈 Historial del precio</strong><span id="chartRange">Desde el inicio</span></div>
+<canvas id="chart" width="700" height="260"></canvas>
+</div>
+<div class="history"><strong>Últimos movimientos</strong><div id="marketHistory">Todavía no hubo movimientos.</div></div>
+</section>
+<section class="panel page" id="plinko"><h2>🔵 Plinko</h2><p class="muted">Soltá la bola: rebota en las clavijas y cae en un casillero con multiplicador. Los bordes pagan más.</p>
+<canvas id="plCanvas" width="360" height="380"></canvas>
+<label for="plBet">Apuesta en bananas</label><input id="plBet" type="number" min="1" step="1" value="10">
+<button class="action" id="plDrop">🔵 SOLTAR BOLA</button><div class="result" id="plResult">Soltá la bola para jugar.</div></section>
+<section class="panel page" id="profile"><h2>🏆 Perfil</h2><div id="profileBox"></div></section>
+<section class="panel page" id="shop"><h2>🛍️ Tienda</h2><p class="muted">Gastá bananas en temas, caballos, títulos y bolas de Plinko.</p><div id="shopBox"></div></section>
+<button class="action secondary" id="newGame">🔄 EMPEZAR OTRA PARTIDA</button>
+<div id="toast"></div>
+<p class="foot">Todo usa bananas ficticias. Tu progreso se guarda solo en este navegador.</p>
+</main>
+
+<script>
+const $=id=>document.getElementById(id);
+
+function showPage(which){
+ ['roulette','blackjack','race','plinko','market','profile','shop'].forEach(p=>{
+  $(p).classList.toggle('active',p===which);
+  $('tab'+p[0].toUpperCase()+p.slice(1)).classList.toggle('active',p===which);
+ });
+ if(which==='market')drawChart();if(which==='profile')renderProfile();if(which==='shop')renderShop();if(which==='plinko')drawPlinko();
+}
+
+let bananas=100,franCoins=0,price=10,selected='Rojo',rotation=0,spinning=false;
+let upgrades=0,multiplierLevel=1;
+
+function upgradeCost(){return 100*Math.pow(1.05,upgrades)}
+function nextUpgradeIncrease(){return .05*Math.pow(1.5,Math.floor(upgrades/10))}
+
+function updateUpgrade(){
+ $('upgradeLevel').textContent=upgrades;
+ $('upgradeCost').textContent='🍌 '+upgradeCost().toFixed(2);
+ $('nextUpgradeIncrease').textContent='Próximo aumento: +'+nextUpgradeIncrease().toFixed(5);
+ const f=n=>Number(n.toFixed(5)).toString();
+ $('redMultiplier').textContent='x'+f(2*multiplierLevel);
+ $('blackMultiplier').textContent='x'+f(2*multiplierLevel);
+ $('greenMultiplier').textContent='x'+f(30*multiplierLevel);
+ $('upgradeBtn').disabled=bananas<upgradeCost()||spinning;
+}
+
+function randomStage(){return Math.floor(Math.random()*3)}
+let phase=randomStage(),manualStage=false,phaseSeconds=15,moveSeconds=3;
+let marketHistory=[],priceHistory=[10];
+
+function updateWallet(){
+ $('bananas').textContent='🍌 '+bananas.toFixed(2);
+ $('holdings').textContent='🪙 '+franCoins.toFixed(3);
+ $('portfolio').textContent='🍌 '+(franCoins*price).toFixed(2);
+ $('coinCount').textContent=franCoins.toFixed(3);
+ $('coinValue').textContent='🍌 '+(franCoins*price).toFixed(2);
+ $('price').textContent='🍌 '+price.toFixed(2);
+ updateUpgrade();updateStageUI();
+}
+
+function stageCost(){return price*100}
+function stageName(){
+ if(phase===0)return '📈 Etapa buena · 60% subir / 40% bajar';
+ if(phase===1)return '📉 Etapa mala · 40% subir / 60% bajar';
+ return '⚖️ Etapa neutra · 50% subir / 50% bajar';
+}
+function updateStageUI(){
+ $('stageCost').textContent='🍌 '+stageCost().toFixed(2);
+ $('stageStatus').textContent=manualStage?stageName()+' · '+phaseSeconds+' s restantes':'❔ Etapa desconocida';
+ $('goodStage').disabled=bananas<stageCost();
+ $('badStage').disabled=bananas<stageCost();
+ $('neutralStage').disabled=bananas<stageCost();
+}
+function changeStage(newPhase){
+ const cost=stageCost();
+ if(bananas<cost){
+  $('marketResult').innerHTML='<span class="bad">No tenés suficientes bananas. Necesitás 🍌 '+cost.toFixed(2)+'.</span>';return;
+ }
+ bananas-=cost;phase=newPhase;manualStage=true;phaseSeconds=15;
+ updateWallet();
+ $('marketResult').innerHTML='<span class="good">¡Etapa cambiada! '+stageName()+'. Dura 15 segundos.</span>';
+}
+$('goodStage').addEventListener('click',()=>changeStage(0));
+$('badStage').addEventListener('click',()=>changeStage(1));
+$('neutralStage').addEventListener('click',()=>changeStage(2));
+
+// RULETA
+const wheel=$('wheel'),ctx=wheel.getContext('2d');
+const slices=Array.from({length:25},(_,i)=>i===24?'Verde':i%2===0?'Rojo':'Negro');
+
+function drawWheel(){
+ const cx=300,cy=300,r=285,step=2*Math.PI/25;
+ slices.forEach((c,i)=>{
+  const a=-Math.PI/2+i*step,b=a+step;
+  ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,a,b);ctx.closePath();
+  ctx.fillStyle=c==='Rojo'?'#cf3441':c==='Negro'?'#17191e':'#16834a';
+  ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=3;ctx.stroke();
+ });
+ ctx.beginPath();ctx.arc(cx,cy,37,0,Math.PI*2);
+ ctx.fillStyle='#e5c36b';ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=5;ctx.stroke();
+}
+drawWheel();
+
+document.querySelectorAll('.color').forEach(btn=>{
+ btn.addEventListener('click',()=>{
+  if(spinning)return;
+  selected=btn.dataset.color;
+  document.querySelectorAll('.color').forEach(b=>b.classList.toggle('active',b===btn));
+ });
+});
+
+let autoSpinning=false;
+function stopAutoSpin(message=''){
+ autoSpinning=false;$('autoSpin').textContent='▶️ ACTIVAR AUTO SPIN';
+ if(message)$('rouletteResult').innerHTML+=' <br>'+message;
+}
+function spinRound(){
+ if(spinning)return;
+ const bet=Number($('bet').value);
+ if(!Number.isInteger(bet)||bet<1||bet>bananas){
+  $('rouletteResult').textContent='Ingresá una apuesta entera válida que no supere tus bananas.';
+  stopAutoSpin();$('spin').disabled=false;return;
+ }
+ spinning=true;$('spin').disabled=true;updateUpgrade();
+ const index=Math.floor(Math.random()*25),color=slices[index],win=color===selected;
+ const payout=win?bet*(color==='Verde'?30:2)*multiplierLevel:0;
+ const degPerSlice=360/25,targetAngle=360-(index*degPerSlice+degPerSlice/2);
+ rotation+=360*6+(targetAngle-(rotation%360));
+ wheel.style.transform=`rotate(${rotation}deg)`;
+
+ setTimeout(()=>{
+  bananas=bananas-bet+payout;record('Ruleta',bet,payout-bet);updateWallet();
+  $('rouletteResult').innerHTML=win
+   ?`<strong class="good">¡ACERTASTE! ${color} · +🍌 ${(payout-bet).toFixed(2)}</strong><br>Premio total: 🍌 ${payout.toFixed(2)}`
+   :`<strong class="bad">Salió ${color}. Perdiste 🍌 ${bet.toFixed(2)}.</strong>`;
+  spinning=false;$('spin').disabled=false;updateUpgrade();
+  if(autoSpinning){
+   if(bananas>=Number($('bet').value)){
+    setTimeout(()=>{if(autoSpinning)spinRound()},400);
+   }else stopAutoSpin('Auto Spin detenido: no tenés suficientes bananas.');
+  }
+ },4100);
+}
+$('spin').addEventListener('click',()=>{if(!spinning)spinRound()});
+$('autoSpin').addEventListener('click',()=>{
+ if(autoSpinning){stopAutoSpin();return}
+ if(spinning)return;
+ autoSpinning=true;$('autoSpin').textContent='⏹ DETENER AUTO SPIN';spinRound();
+});
+
+$('upgradeBtn').addEventListener('click',()=>{
+ if(spinning)return;
+ const cost=upgradeCost();
+ if(bananas<cost)return;
+ const increase=nextUpgradeIncrease();
+ bananas-=cost;upgrades++;multiplierLevel+=increase;updateWallet();
+ $('rouletteResult').innerHTML='<strong class="good">⚡ ¡MEJORA COMPRADA! Se sumó +'+increase.toFixed(5)+' al multiplicador.</strong>';
+});
+
+// BLACKJACK
+let bjPlayer=[],bjDealer=[],bjBet=0,bjActive=false,bjBusy=false;
+
+function drawCard(){
+ const ranks=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+ const suits=['♠️','♥️','♦️','♣️'];
+ return {rank:ranks[Math.floor(Math.random()*ranks.length)],suit:suits[Math.floor(Math.random()*suits.length)]};
+}
+function handValue(hand){
+ let total=0,aces=0;
+ hand.forEach(card=>{
+  if(card.rank==='A'){total+=11;aces++}
+  else if(['K','Q','J'].includes(card.rank))total+=10;
+  else total+=Number(card.rank);
+ });
+ while(total>21&&aces>0){total-=10;aces--}
+ return total;
+}
+function renderCards(revealDealer=false){
+ const hidden=bjActive&&!revealDealer;
+ $('playerCards').innerHTML=bjPlayer.map(card=>
+  `<div class="playing-card ${['♥️','♦️'].includes(card.suit)?'red-card':''}">${card.rank}${card.suit}</div>`
+ ).join('');
+ $('dealerCards').innerHTML=bjDealer.map((card,i)=>{
+  if(hidden&&i===1)return '<div class="playing-card hidden-card">?</div>';
+  return `<div class="playing-card ${['♥️','♦️'].includes(card.suit)?'red-card':''}">${card.rank}${card.suit}</div>`;
+ }).join('');
+ $('playerScore').textContent='Puntos: '+handValue(bjPlayer);
+ $('dealerScore').textContent=hidden?'Puntos: '+handValue([bjDealer[0]])+' + ?':'Puntos: '+handValue(bjDealer);
+}
+function finishBlackjack(message,type=''){
+ record('Blackjack',bjBet,type==='good'?bjBet:type==='bad'?-bjBet:0);
+ bjActive=false;bjBusy=false;
+ $('bjDecision').style.display='none';$('bjPlay').style.display='none';
+ $('bjResult').innerHTML=`<strong class="${type}">${message}</strong>`;
+ renderCards(true);updateWallet();
+}
+function dealerTurn(){
+ $('bjDecision').style.display='none';$('bjPlay').style.display='none';
+ renderCards(true);
+ while(handValue(bjDealer)<17)bjDealer.push(drawCard());
+ renderCards(true);
+ const p=handValue(bjPlayer),d=handValue(bjDealer);
+ if(d>21){bananas+=bjBet*2;finishBlackjack('¡El dealer se pasó! Ganaste 🍌 '+(bjBet*2).toFixed(2),'good')}
+ else if(p>d){bananas+=bjBet*2;finishBlackjack('¡Ganaste! 🍌 '+(bjBet*2).toFixed(2),'good')}
+ else if(p===d){bananas+=bjBet;finishBlackjack('Empate. Recuperaste tu apuesta.')}
+ else finishBlackjack('Ganó el dealer. Perdiste 🍌 '+bjBet.toFixed(2),'bad');
+}
+function startBlackjack(){
+ if(bjActive||bjBusy)return;
+ const bet=Number($('bjBet').value);
+ if(!Number.isInteger(bet)||bet<1||bet>bananas){
+  $('bjResult').textContent='Ingresá una apuesta entera válida.';return;
+ }
+ bjBet=bet;bananas-=bet;
+ bjPlayer=[drawCard(),drawCard()];
+ bjDealer=[drawCard(),drawCard()];
+ bjActive=true;bjBusy=false;
+ $('bjDecision').style.display='grid';$('bjPlay').style.display='none';
+ $('bjResult').textContent='¿Querés duplicar la apuesta o seguir con la inicial?';
+ renderCards();updateWallet();
+
+ const pn=handValue(bjPlayer)===21,dn=handValue(bjDealer)===21;
+ if(pn||dn){
+  if(pn&&dn){bananas+=bjBet;finishBlackjack('¡Empate! Ambos tienen Blackjack.')}
+  else if(pn){bananas+=bjBet*2.5;finishBlackjack('¡BLACKJACK! Ganaste 🍌 '+(bjBet*2.5).toFixed(2),'good')}
+  else finishBlackjack('El dealer tiene Blackjack. Perdiste 🍌 '+bjBet.toFixed(2),'bad');
+ }
+}
+function continueInitialBet(){
+ if(!bjActive||bjBusy)return;
+ $('bjDecision').style.display='none';
+ $('bjPlay').style.display='grid';
+ $('bjResult').textContent='Podés pedir cartas o plantarte.';
+}
+function doubleBlackjack(){
+ if(!bjActive||bjBusy)return;
+ bjBusy=true;
+ if(bananas<bjBet){
+  $('bjResult').textContent='No tenés suficientes bananas para duplicar.';
+  bjBusy=false;return;
+ }
+ $('bjDecision').style.display='none';
+ $('bjPlay').style.display='none';
+ bananas-=bjBet;bjBet*=2;
+ bjPlayer.push(drawCard());
+ renderCards();updateWallet();
+ if(handValue(bjPlayer)>21){
+  finishBlackjack('Te pasaste de 21. Perdiste 🍌 '+bjBet.toFixed(2),'bad');return;
+ }
+ dealerTurn();
+}
+function hitBlackjack(){
+ if(!bjActive||bjBusy)return;
+ bjBusy=true;
+ bjPlayer.push(drawCard());renderCards();
+ const total=handValue(bjPlayer);
+ if(total>21)finishBlackjack('Te pasaste de 21. Perdiste 🍌 '+bjBet.toFixed(2),'bad');
+ else if(total===21)dealerTurn();
+ else bjBusy=false;
+}
+function standBlackjack(){
+ if(!bjActive||bjBusy)return;
+ bjBusy=true;dealerTurn();
+}
+$('bjStart').addEventListener('click',startBlackjack);
+$('bjDouble').addEventListener('click',doubleBlackjack);
+$('bjKeep').addEventListener('click',continueInitialBet);
+$('bjHit').addEventListener('click',hitBlackjack);
+$('bjStand').addEventListener('click',standBlackjack);
+
+// CARRERAS DE CABALLOS
+const horses=[
+ {n:'Relámpago',p:.35,m:2.5},
+ {n:'Tormenta',p:.25,m:3.5},
+ {n:'Banano',p:.20,m:4.5},
+ {n:'Fantasma',p:.12,m:7},
+ {n:'Locura',p:.08,m:11}
+];
+let pickedHorse=0,racing=false,raceWins=[];
+$('track').innerHTML=horses.map((h,i)=>`<div class="lane"><span class="num">${i+1} · ${h.n}</span><span class="horse" id="horse${i}">🐎</span></div>`).join('');
+$('horsePicks').innerHTML=horses.map((h,i)=>`<button class="horse-pick${i===0?' active':''}" data-i="${i}">${i+1}<b>x${h.m}</b>${h.n}<small>${Math.round(h.p*100)}%</small></button>`).join('');
+document.querySelectorAll('.horse-pick').forEach(b=>b.addEventListener('click',()=>{
+ if(racing)return;
+ pickedHorse=Number(b.dataset.i);
+ document.querySelectorAll('.horse-pick').forEach(x=>x.classList.toggle('active',x===b));
+}));
+function placeHorse(i,p){$('horse'+i).style.left=`calc(${p*100}% - ${p*40}px)`}
+function pickWinner(){
+ let r=Math.random(),acc=0;
+ for(let i=0;i<horses.length;i++){acc+=horses[i].p;if(r<acc)return i}
+ return horses.length-1;
+}
+function startRace(){
+ if(racing)return;
+ const bet=Number($('raceBet').value);
+ if(!Number.isInteger(bet)||bet<1||bet>bananas){
+  $('raceResult').textContent='Ingresá una apuesta entera válida que no supere tus bananas.';return;
+ }
+ racing=true;$('raceStart').disabled=true;
+ bananas-=bet;updateWallet();
+ $('raceResult').textContent='¡Largaron! 🏁';
+ const win=pickWinner(),T=horses.map((_,i)=>i===win?7:7.6+Math.random()*1.8),ph=horses.map(()=>Math.random()*6.28),sp=horses.map(()=>2+Math.random()*3);
+ horses.forEach((_,i)=>placeHorse(i,0));
+ const t0=performance.now();
+ function frame(now){
+  const t=(now-t0)/1000;let done=false;
+  horses.forEach((_,i)=>{
+   const q=Math.min(1,t/T[i]);
+   const p=Math.max(0,Math.min(1,q+.07*Math.sin(t*sp[i]+ph[i])*(1-q)*Math.min(1,t)));
+   placeHorse(i,q>=1?1:p);
+  });
+  if(t>=T[win])done=true;
+  if(!done){requestAnimationFrame(frame);return}
+  const won=win===pickedHorse,payout=won?bet*horses[win].m:0;
+  bananas+=payout;
+  raceWins.unshift(horses[win].n);raceWins=raceWins.slice(0,6);
+  $('raceHistory').textContent=raceWins.map(n=>'🏆 '+n).join(' · ');
+  $('raceResult').innerHTML=won
+   ?`<strong class="good">¡Ganó ${horses[win].n}! Cobraste 🍌 ${payout.toFixed(2)} (+🍌 ${(payout-bet).toFixed(2)})</strong>`
+   :`<strong class="bad">Ganó ${horses[win].n}. Perdiste 🍌 ${bet.toFixed(2)}.</strong>`;
+  record('Carreras',bet,payout-bet);racing=false;$('raceStart').disabled=false;updateWallet();
+ }
+ requestAnimationFrame(frame);
+}
+$('raceStart').addEventListener('click',startRace);
+
+// GRÁFICO
+function drawChart(){
+ const c=$('chart');
+ if(c.clientWidth&&(c.width!==c.clientWidth||c.height!==c.clientHeight)){c.width=c.clientWidth;c.height=c.clientHeight}
+ const g=c.getContext('2d'),w=c.width,h=c.height,pad={l:55,r:15,t:15,b:28};
+ g.clearRect(0,0,w,h);g.fillStyle='#111a29';g.fillRect(0,0,w,h);
+ const vals=priceHistory.slice(-80),min=Math.min(...vals)*.94,max=Math.max(...vals)*1.06||1,range=max-min||1;
+ g.font='12px system-ui';g.fillStyle='#9eacc2';g.strokeStyle='#344258';g.lineWidth=1;
+ for(let i=0;i<5;i++){
+  const y=pad.t+(h-pad.t-pad.b)*i/4;
+  g.beginPath();g.moveTo(pad.l,y);g.lineTo(w-pad.r,y);g.stroke();
+  g.fillText((max-range*i/4).toFixed(2),5,y+4);
+ }
+ if(vals.length<2){g.fillText('El gráfico se irá completando con los movimientos…',pad.l+8,h/2);return}
+ const xStep=(w-pad.l-pad.r)/(vals.length-1),yFor=v=>pad.t+(max-v)/range*(h-pad.t-pad.b);
+ g.beginPath();
+ vals.forEach((v,i)=>{const x=pad.l+i*xStep,y=yFor(v);if(i===0)g.moveTo(x,y);else g.lineTo(x,y)});
+ const up=vals[vals.length-1]>=vals[vals.length-2],lineColor=up?'#70e6a0':'#ff3b3b';
+ g.strokeStyle=lineColor;g.lineWidth=4;g.stroke();
+ const lastX=pad.l+(vals.length-1)*xStep,lastY=yFor(vals[vals.length-1]);
+ g.beginPath();g.arc(lastX,lastY,5,0,Math.PI*2);g.fillStyle=lineColor;g.fill();
+ g.fillStyle='#9eacc2';g.fillText('Anterior',pad.l,h-7);g.textAlign='right';g.fillText('Actual',w-pad.r,h-7);g.textAlign='left';
+}
+function updateHistory(){
+ $('marketHistory').innerHTML=marketHistory.length?marketHistory.map(m=>
+  `<div class="history-row"><span>${m.up?'📈':'📉'} ${m.change}</span><strong>🍌 ${m.price.toFixed(2)}</strong></div>`
+ ).join(''):'Todavía no hubo movimientos.';
+ $('moveCount').textContent=marketHistory.length;
+}
+function marketTick(){
+ let chanceUp=.5;if(phase===0)chanceUp=.6;if(phase===1)chanceUp=.4;
+ const up=Math.random()<chanceUp;
+ price=Math.max(.01,price*(up?1.10:.90));
+ const change=up?'+10%':'−10%';
+ $('movement').innerHTML=`<span class="${up?'good':'bad'}">${up?'📈 Subió':'📉 Bajó'} ${change}</span>`;
+ marketHistory.unshift({up,change,price});marketHistory=marketHistory.slice(0,8);
+ priceHistory.push(price);if(priceHistory.length>300)priceHistory.shift();
+ updateHistory();updateWallet();drawChart();
+}
+$('buy').addEventListener('click',()=>{
+ const amount=Number($('tradeAmount').value);
+ if(!Number.isFinite(amount)||amount<=0){$('marketResult').textContent='Ingresá una cantidad válida.';return}
+ if(amount>bananas){$('marketResult').textContent='No tenés suficientes bananas.';return}
+ const bought=amount/price;bananas-=amount;franCoins+=bought;updateWallet();
+ $('marketResult').innerHTML=`<span class="good">Compraste ${bought.toFixed(3)} FranCoins por 🍌 ${amount.toFixed(2)}.</span>`;
+});
+$('sell').addEventListener('click',()=>{
+ if(franCoins<=0){$('marketResult').textContent='No tenés FranCoins para vender.';return}
+ const received=franCoins*price,sold=franCoins;
+ bananas+=received;franCoins=0;updateWallet();
+ $('marketResult').innerHTML=`<span class="good">Vendiste ${sold.toFixed(3)} FranCoins y recibiste 🍌 ${received.toFixed(2)}.</span>`;
+});
+
+setInterval(()=>{
+ moveSeconds--;
+ if(moveSeconds<=0){marketTick();moveSeconds=3}
+ $('nextMove').textContent=moveSeconds+' s';
+ phaseSeconds--;
+ if(phaseSeconds<=0){phase=randomStage();manualStage=false;phaseSeconds=15}
+ updateStageUI();
+},1000);
+
+updateWallet();drawChart();
+// ===== PROGRESO: NIVELES, MISIONES, LOGROS, TIENDA, PLINKO, GUARDADO =====
+const KEY='casinoFranV1';
+const fresh=()=>({xp:0,lvl:1,runs:1,own:['t0','h0','ti0','b0'],eq:{Tema:'t0',Caballo:'h0','Título':'ti0',Bola:'b0'},ach:[],mp:{},h:[],st:{rounds:0,wins:0,losses:0,ties:0,wag:0,won:0,lost:0,best:0,streak:0,maxStreak:0,g:{}}});
+let S=fresh(),broke=false,ngArm=false;
+const SHOP=[['t0','Tema','Medianoche',0,'radial-gradient(circle at top,#283653,#101522 68%)'],['t1','Tema','Selva',150,'radial-gradient(circle at top,#2d6a3e,#0c1f14 70%)'],['t2','Tema','Atardecer',200,'radial-gradient(circle at top,#7a3b5e,#1d1030 70%)'],['t3','Tema','Neón',300,'radial-gradient(circle at top,#0b5d6b,#12002b 70%)'],['h0','Caballo','Clásico',0,'🐎'],['h1','Caballo','Unicornio',120,'🦄'],['h2','Caballo','Cebra',100,'🦓'],['ti0','Título','Novato',0,'Novato'],['ti1','Título','Apostador',100,'Apostador'],['ti2','Título','Tiburón',400,'Tiburón 🦈'],['ti3','Título','Rey Banana',1000,'Rey Banana 👑'],['b0','Bola','Blanca',0,'#ffffff'],['b1','Bola','Dorada',60,'#ffd54f'],['b2','Bola','Rosa',80,'#ff5c8a'],['b3','Bola','Celeste',100,'#5cf0ff']];
+const itemOf=id=>SHOP.find(i=>i[0]===id)||SHOP[0];
+const MIS=[{k:'rounds',t:'Jugá 5 rondas',n:5,r:25},{k:'wins',t:'Ganá 3 veces',n:3,r:30},{k:'wag',t:'Apostá 100 🍌 en total',n:100,r:40},{k:'race',t:'Jugá 2 carreras',n:2,r:30},{k:'plinko',t:'Jugá 5 veces Plinko',n:5,r:30}];
+const gst=g=>S.st.g[g]||{n:0,w:0,net:0};
+const ACH=[['a1','🎯','Primera apuesta',0,()=>S.st.rounds>=1],['a2','🎰','50 rondas jugadas',0,()=>S.st.rounds>=50],['a3','🔥','Racha de 3 victorias',0,()=>S.st.maxStreak>=3],['a4','💰','Llegar a 1000 🍌',0,()=>bananas>=1000],['a5','⭐','Llegar al nivel 5',0,()=>S.lvl>=5],['a6','💎','Premio de +300 🍌',0,()=>S.st.best>=300],['a7','🔵','20 partidas de Plinko',0,()=>gst('Plinko').n>=20],['a8','🏇','Ganar 5 carreras',0,()=>gst('Carreras').w>=5],['a9','🪙','Invertir en FranCoin',0,()=>franCoins>0],['a10','🛍️','Comprar 3 cosas',0,()=>S.own.length>=7]];
+const xpNeed=l=>40+20*l;
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),2600)}
+function save(){try{localStorage.setItem(KEY,JSON.stringify({b:bananas,f:franCoins,p:price,u:upgrades,m:multiplierLevel,S}))}catch(e){}}
+function load(){try{const d=JSON.parse(localStorage.getItem(KEY));if(!d)return;const n=Number.isFinite;if(n(d.b))bananas=d.b;if(n(d.f))franCoins=d.f;if(n(d.p)&&d.p>0)price=d.p;if(n(d.u))upgrades=d.u;if(n(d.m))multiplierLevel=d.m;if(d.S){S=Object.assign(fresh(),d.S);S.st=Object.assign(fresh().st,d.S.st||{});S.eq=Object.assign(fresh().eq,d.S.eq||{})}priceHistory=[price]}catch(e){}}
+function addXp(n){S.xp+=Math.round(n);let need;while(S.xp>=(need=xpNeed(S.lvl))){S.xp-=need;S.lvl++;bananas+=20*S.lvl;toast('⭐ ¡Nivel '+S.lvl+'! +🍌 '+20*S.lvl)}}
+function record(g,bet,net){
+ const st=S.st;st.rounds++;st.wag+=bet;
+ if(net>0){st.wins++;st.won+=net;st.streak++;st.maxStreak=Math.max(st.maxStreak,st.streak);st.best=Math.max(st.best,net)}
+ else{if(net<0){st.losses++;st.lost-=net}else st.ties++;st.streak=0}
+ const o=st.g[g]||(st.g[g]={n:0,w:0,net:0});o.n++;if(net>0)o.w++;o.net+=net;
+ S.h.unshift({g,bet,net});S.h=S.h.slice(0,15);
+ const add=(k,v=1)=>S.mp[k]=(S.mp[k]||0)+v;add('rounds');if(net>0)add('wins');add('wag',bet);if(g==='Carreras')add('race');if(g==='Plinko')add('plinko');
+ addXp(4+Math.min(bet,200)/10+(net>0?4:0));
+}
+function checkAch(){let got=false;ACH.forEach(a=>{if(!S.ach.includes(a[0])&&a[4]()){S.ach.push(a[0]);bananas+=50;addXp(20);got=true;toast('🏆 Logro: '+a[2]+' (+🍌 50)')}});if(got){_uw();renderHUD();save()}}
+function renderHUD(){$('lvl').textContent='Nv '+S.lvl;$('xpFill').style.width=Math.min(100,S.xp/xpNeed(S.lvl)*100)+'%'}
+const _uw=updateWallet;
+updateWallet=function(){_uw();renderHUD();save();checkAch();
+ if(bananas<1&&franCoins*price<1){if(!broke){broke=true;toast('Sin bananas 😢 Tocá EMPEZAR OTRA PARTIDA')}}else broke=false;
+ if($('profile').classList.contains('active'))renderProfile();if($('shop').classList.contains('active'))renderShop()};
+function applyEq(){document.body.style.background=itemOf(S.eq.Tema)[4];document.querySelectorAll('.horse').forEach(e=>e.textContent=itemOf(S.eq.Caballo)[4]);$('titleLine').textContent=itemOf(S.eq['Título'])[4]}
+function renderProfile(){
+ const st=S.st,need=xpNeed(S.lvl),f=v=>v.toFixed(2);
+ let h=`<div class='box'><b>⭐ Nivel ${S.lvl}</b> · ${itemOf(S.eq['Título'])[4]}<div class='bar'><i style='width:${Math.round(S.xp/need*100)}%'></i></div><small class='muted'>${S.xp} / ${need} XP · partida nº ${S.runs}</small></div><h3 class='sec'>🎯 Misiones</h3>`;
+ h+=MIS.map(m=>{const p=Math.min(m.n,S.mp[m.k]||0),ok=p>=m.n;return `<div class='row'><span>${m.t}<br><small class='muted'>${p}/${m.n} · +🍌 ${m.r}</small></span><button class='mini' data-claim='${m.k}' ${ok?'':'disabled'}>${ok?'COBRAR':'…'}</button></div>`}).join('');
+ h+=`<h3 class='sec'>🏅 Logros (${S.ach.length}/${ACH.length})</h3><div class='achs'>`+ACH.map(a=>`<div class='ach ${S.ach.includes(a[0])?'on':''}'><span>${a[1]}</span>${a[2]}</div>`).join('')+'</div>';
+ h+=`<h3 class='sec'>📊 Estadísticas</h3><div class='sg'><div>Rondas<strong>${st.rounds}</strong></div><div>Victorias<strong>${st.rounds?Math.round(st.wins/st.rounds*100):0}%</strong></div><div>Apostado<strong>🍌 ${f(st.wag)}</strong></div><div>Mejor premio<strong>+${f(st.best)}</strong></div><div>Ganado<strong>🍌 ${f(st.won)}</strong></div><div>Perdido<strong>🍌 ${f(st.lost)}</strong></div><div>Racha actual<strong>${st.streak}</strong></div><div>Mejor racha<strong>${st.maxStreak}</strong></div></div>`;
+ h+=Object.keys(st.g).map(g=>{const o=st.g[g];return `<div class='row'><span>${g}<br><small class='muted'>${o.n} jugadas · ${o.w} ganadas</small></span><strong class='${o.net>=0?'good':'bad'}'>${o.net>=0?'+':''}${f(o.net)}</strong></div>`}).join('');
+ h+=`<h3 class='sec'>🕘 Historial</h3>`+(S.h.length?S.h.slice(0,10).map(x=>`<div class='history-row'><span>${x.g} · 🍌 ${x.bet}</span><strong class='${x.net>0?'good':x.net<0?'bad':''}'>${x.net>0?'+':''}${f(x.net)}</strong></div>`).join(''):'<p class="muted">Todavía no jugaste.</p>');
+ $('profileBox').innerHTML=h;
+}
+function renderShop(){
+ let h='';
+ ['Tema','Caballo','Título','Bola'].forEach(c=>{
+  h+=`<h3 class='sec'>${c}s</h3>`;
+  SHOP.filter(i=>i[1]===c).forEach(i=>{
+   const own=S.own.includes(i[0]),eq=S.eq[c]===i[0],pv=c==='Caballo'?i[4]+' ':c==='Título'?'':`<span class='dot' style='background:${i[4]}'></span>`;
+   h+=`<div class='row'><span>${pv}${i[2]}</span>`+(eq?`<button class='mini' disabled>✔ EQUIPADO</button>`:own?`<button class='mini' data-eq='${i[0]}'>EQUIPAR</button>`:`<button class='mini' data-buy='${i[0]}' ${bananas<i[3]?'disabled':''}>🍌 ${i[3]}</button>`)+'</div>';
+  });
+ });
+ $('shopBox').innerHTML=h;
+}
+function equip(id){S.eq[itemOf(id)[1]]=id;applyEq();updateWallet()}
+$('profileBox').addEventListener('click',e=>{const k=e.target.dataset.claim;if(!k)return;const m=MIS.find(x=>x.k===k);if((S.mp[k]||0)<m.n)return;S.mp[k]-=m.n;bananas+=m.r;addXp(15);updateWallet();toast('🎯 Misión cumplida +🍌 '+m.r)});
+$('shopBox').addEventListener('click',e=>{const b=e.target.dataset.buy,q=e.target.dataset.eq;if(q)equip(q);if(b){const i=itemOf(b);if(S.own.includes(b)||bananas<i[3])return;bananas-=i[3];S.own.push(b);equip(b);toast('🛍️ Compraste '+i[2])}});
+// PLINKO
+const PM=[22,5,2,1.3,.6,.3,.6,1.3,2,5,22];
+let plinkoBusy=false,pl=null;
+const plX=(r,j)=>180+(2*j-r)*15,plY=r=>40+r*26;
+function drawPlinko(){
+ const g=$('plCanvas').getContext('2d');g.fillStyle='#111a29';g.fillRect(0,0,360,380);g.fillStyle='#9eacc2';
+ for(let r=0;r<10;r++)for(let j=0;j<=r;j++){g.beginPath();g.arc(plX(r,j),plY(r),3.5,0,7);g.fill()}
+ PM.forEach((m,k)=>{const x=180+(k-5)*30;g.fillStyle=pl&&pl.done&&pl.k===k?'#f7d36b':m>=5?'#c93642':m>=1?'#16834a':'#35445d';g.fillRect(x-14,318,28,26);g.fillStyle=pl&&pl.done&&pl.k===k?'#20202a':'#fff';g.font='bold 10px system-ui';g.textAlign='center';g.fillText('x'+m,x,335)});
+ if(pl&&pl.pos){g.beginPath();g.arc(pl.pos.x,pl.pos.y,7,0,7);g.fillStyle=itemOf(S.eq.Bola)[4];g.fill()}
+}
+function dropPlinko(){
+ if(plinkoBusy)return;
+ const bet=Number($('plBet').value);
+ if(!Number.isInteger(bet)||bet<1||bet>bananas){$('plResult').textContent='Ingresá una apuesta entera válida que no supere tus bananas.';return}
+ plinkoBusy=true;$('plDrop').disabled=true;bananas-=bet;updateWallet();
+ let j=0;const wp=[{x:180,y:30}];
+ for(let i=0;i<10;i++){j+=Math.random()<.5?1:0;wp.push({x:plX(i+1,j),y:i<9?plY(i+1)-10:312})}
+ const k=j,seg=170;pl={k,pos:wp[0],done:false};let t0=null;
+ function f(now){
+  if(t0===null)t0=now;
+  const t=(now-t0)/seg,i=Math.min(9,Math.floor(t)),fr=Math.min(1,t-i),a=wp[i],b=wp[i+1];
+  if(t<10){pl.pos={x:a.x+(b.x-a.x)*fr,y:a.y+(b.y-a.y)*fr-9*Math.sin(Math.PI*fr)};drawPlinko();requestAnimationFrame(f);return}
+  pl.pos=wp[10];pl.done=true;drawPlinko();
+  const payout=bet*PM[k];bananas+=payout;record('Plinko',bet,payout-bet);
+  $('plResult').innerHTML=payout>bet?`<strong class='good'>¡x${PM[k]}! Ganaste 🍌 ${payout.toFixed(2)}</strong>`:`<strong class='bad'>x${PM[k]}: recuperaste 🍌 ${payout.toFixed(2)} de ${bet}.</strong>`;
+  plinkoBusy=false;$('plDrop').disabled=false;updateWallet();
+ }
+ requestAnimationFrame(f);
+}
+$('plDrop').addEventListener('click',dropPlinko);
+// NUEVA PARTIDA
+function newGame(){
+ if(spinning||racing||bjActive||plinkoBusy){toast('Esperá a que termine la ronda');return}
+ const b=$('newGame');
+ if(!ngArm){ngArm=true;b.textContent='⚠️ ¿Seguro? Tocá otra vez';setTimeout(()=>{ngArm=false;b.textContent='🔄 EMPEZAR OTRA PARTIDA'},4000);return}
+ ngArm=false;b.textContent='🔄 EMPEZAR OTRA PARTIDA';stopAutoSpin();
+ bananas=100;franCoins=0;price=10;upgrades=0;multiplierLevel=1;priceHistory=[10];marketHistory=[];manualStage=false;S.runs++;
+ updateHistory();$('movement').textContent='Esperando primer movimiento…';
+ ['rouletteResult','bjResult','raceResult','plResult','marketResult'].forEach(i=>$(i).textContent='Nueva partida: ¡suerte!');
+ updateWallet();drawChart();toast('🔄 Partida nº '+S.runs+' · conservás nivel, logros y tienda');
+}
+$('newGame').addEventListener('click',newGame);
+addEventListener('pagehide',save);
+document.addEventListener('visibilitychange',save);
+load();applyEq();updateWallet();drawPlinko();
+</script>
+</body>
+</html>
